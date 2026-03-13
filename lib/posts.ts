@@ -11,21 +11,21 @@ export type Post = {
   category: string;
   excerpt: string;
   readTime: string;
+  articleType: string;
   content: string;
+  products?: object[];
+  reviewProduct?: object;
 };
 
 export function getAllPosts(): Post[] {
   if (!fs.existsSync(postsDirectory)) return [];
-  
   const fileNames = fs.readdirSync(postsDirectory);
-  const posts = fileNames
+  return fileNames
     .filter((f) => f.endsWith(".mdx"))
     .map((fileName) => {
       const slug = fileName.replace(/\.mdx$/, "");
       const fullPath = path.join(postsDirectory, fileName);
-      const fileContents = fs.readFileSync(fullPath, "utf8");
-      const { data, content } = matter(fileContents);
-
+      const { data, content } = matter(fs.readFileSync(fullPath, "utf8"));
       return {
         slug,
         title: data.title || "",
@@ -33,19 +33,19 @@ export function getAllPosts(): Post[] {
         category: data.category || "",
         excerpt: data.excerpt || "",
         readTime: data.readTime || "5 min",
+        articleType: data.articleType || "comparison",
+        products: data.products || [],
+        reviewProduct: data.reviewProduct || null,
         content,
       };
-    });
-
-  return posts.sort((a, b) => (a.date < b.date ? 1 : -1));
+    })
+    .sort((a, b) => (a.date < b.date ? 1 : -1));
 }
 
 export function getPostBySlug(slug: string): Post | null {
   try {
     const fullPath = path.join(postsDirectory, `${slug}.mdx`);
-    const fileContents = fs.readFileSync(fullPath, "utf8");
-    const { data, content } = matter(fileContents);
-
+    const { data, content } = matter(fs.readFileSync(fullPath, "utf8"));
     return {
       slug,
       title: data.title || "",
@@ -53,6 +53,9 @@ export function getPostBySlug(slug: string): Post | null {
       category: data.category || "",
       excerpt: data.excerpt || "",
       readTime: data.readTime || "5 min",
+      articleType: data.articleType || "comparison",
+      products: data.products || [],
+      reviewProduct: data.reviewProduct || null,
       content,
     };
   } catch {
