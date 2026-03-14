@@ -1,5 +1,5 @@
 "use client";
-import { useState, useMemo } from "react";
+import { useState, useMemo, useRef, useEffect } from "react";
 import Link from "next/link";
 
 const coverImages: Record<string, string> = {
@@ -12,29 +12,135 @@ function getCoverImage(slug: string, products: any[], reviewProduct: any) {
   if (products?.[0]?.image) return products[0].image;
   return "https://images.unsplash.com/photo-1556742049-0cfed4f6a45d?w=600&q=80&auto=format";
 }
-const categoryStyles: Record<string, { bg: string; color: string }> = {
-  smartphones: { bg: "#EDE9FE", color: "#6D28D9" },
-  smartwatches: { bg: "#E6F7F5", color: "#0d9488" },
-  laptops: { bg: "#FEF3C7", color: "#B45309" },
-  kitchen: { bg: "#FCE7F3", color: "#BE185D" },
-  headphones: { bg: "#DBEAFE", color: "#1D4ED8" },
+const catStyleMap: Record<string, { bg: string; color: string; dot: string }> = {
+  smartphones:  { bg: "#EDE9FE", color: "#6D28D9", dot: "#7C3AED" },
+  smartwatches: { bg: "#E6F7F5", color: "#0d9488",  dot: "#0d9488" },
+  laptops:      { bg: "#FEF3C7", color: "#B45309",  dot: "#F59E0B" },
+  kitchen:      { bg: "#FCE7F3", color: "#BE185D",  dot: "#EC4899" },
+  headphones:   { bg: "#DBEAFE", color: "#1D4ED8",  dot: "#3B82F6" },
 };
 function getCatStyle(cat: string) {
   const k = cat.toLowerCase();
-  for (const [key, val] of Object.entries(categoryStyles)) if (k.includes(key)) return val;
-  return { bg: "#F3F4F6", color: "#374151" };
+  for (const [key, val] of Object.entries(catStyleMap)) if (k.includes(key)) return val;
+  return { bg: "#F3F4F6", color: "#374151", dot: "#9CA3AF" };
+}
+
+type Tab = "type" | "sort";
+
+function FilterPopover({ open, onClose, anchorRef, hasGuides, hasReviews, activeType, sort, onType, onSort }: {
+  open: boolean; onClose: () => void;
+  anchorRef: React.RefObject<HTMLButtonElement | null>;
+  hasGuides: boolean; hasReviews: boolean;
+  activeType: string; sort: string;
+  onType: (t: string) => void; onSort: (s: string) => void;
+}) {
+  const ref = useRef<HTMLDivElement>(null);
+  const [tab, setTab] = useState<Tab>("type");
+
+  useEffect(() => {
+    const handler = (e: MouseEvent) => {
+      if (ref.current && !ref.current.contains(e.target as Node) &&
+          anchorRef.current && !anchorRef.current.contains(e.target as Node)) onClose();
+    };
+    if (open) document.addEventListener("mousedown", handler);
+    return () => document.removeEventListener("mousedown", handler);
+  }, [open, onClose, anchorRef]);
+
+  if (!open) return null;
+
+  const tabs: { id: Tab; label: string; badge?: string }[] = [
+    { id: "type", label: "Type", badge: activeType !== "All" ? activeType : undefined },
+    { id: "sort", label: "Sort", badge: sort !== "newest" ? "Oldest" : undefined },
+  ];
+
+  return (
+    <div ref={ref} style={{
+      position: "absolute" as const, top: "calc(100% + 10px)", right: 0,
+      background: "#fff", borderRadius: 18, border: "1px solid #E5E4E0",
+      boxShadow: "0 12px 40px rgba(0,0,0,0.14)", zIndex: 300, width: 260, overflow: "hidden",
+      animation: "popIn 0.18s cubic-bezier(0.34,1.56,0.64,1)"
+    }}>
+      {/* Tab bar */}
+      <div style={{ display: "flex", borderBottom: "1px solid #F3F4F6", padding: "6px 6px 0" }}>
+        {tabs.map(t => (
+          <button key={t.id} onClick={() => setTab(t.id)}
+            style={{ flex: 1, display: "flex", flexDirection: "column" as const, alignItems: "center", gap: 3, padding: "10px 8px", borderRadius: "10px 10px 0 0", border: "none", cursor: "pointer", background: tab === t.id ? "#F7F6F3" : "transparent", borderBottom: tab === t.id ? "2px solid #0d9488" : "2px solid transparent", transition: "all 0.15s" }}>
+            <span style={{ fontSize: 12, fontWeight: 700, color: tab === t.id ? "#0d9488" : "#9CA3AF" }}>{t.label}</span>
+            {t.badge && <span style={{ fontSize: 10, fontWeight: 700, color: "#fff", background: "#0d9488", borderRadius: 100, padding: "1px 7px" }}>{t.badge}</span>}
+          </button>
+        ))}
+      </div>
+
+      <div style={{ padding: "12px" }}>
+        {tab === "type" && (
+          <div>
+            {[
+              { v: "All",    icon: "📋", label: "All Types",        desc: "Show everything" },
+              ...(hasGuides  ? [{ v: "Guide",  icon: "🗂", label: "Buying Guide",    desc: "Best-of comparison guides" }] : []),
+              ...(hasReviews ? [{ v: "Review", icon: "⭐", label: "In-Depth Review", desc: "Single product deep-dives" }] : []),
+            ].map(t => {
+              const active = activeType === t.v;
+              return (
+                <button key={t.v} onClick={() => { onType(t.v); onClose(); }}
+                  style={{ width: "100%", display: "flex", alignItems: "center", gap: 12, padding: "10px 10px", borderRadius: 12, border: active ? "1.5px solid #b2ddd8" : "1.5px solid transparent", cursor: "pointer", background: active ? "#E6F7F5" : "#F7F6F3", textAlign: "left" as const, marginBottom: 6, transition: "all 0.12s" }}>
+                  <span style={{ fontSize: 18 }}>{t.icon}</span>
+                  <div style={{ flex: 1 }}>
+                    <div style={{ fontSize: 13, fontWeight: active ? 700 : 600, color: active ? "#0d9488" : "#1C1C1E" }}>{t.label}</div>
+                    <div style={{ fontSize: 11, color: "#9CA3AF", marginTop: 1 }}>{t.desc}</div>
+                  </div>
+                  {active && <span style={{ fontSize: 13, color: "#0d9488" }}>✓</span>}
+                </button>
+              );
+            })}
+          </div>
+        )}
+        {tab === "sort" && (
+          <div>
+            {[
+              { v: "newest", icon: "🆕", label: "Newest First", desc: "Latest articles at the top" },
+              { v: "oldest", icon: "📅", label: "Oldest First", desc: "Earliest articles at the top" },
+            ].map(s => {
+              const active = sort === s.v;
+              return (
+                <button key={s.v} onClick={() => { onSort(s.v); onClose(); }}
+                  style={{ width: "100%", display: "flex", alignItems: "center", gap: 12, padding: "10px 10px", borderRadius: 12, border: active ? "1.5px solid #b2ddd8" : "1.5px solid transparent", cursor: "pointer", background: active ? "#E6F7F5" : "#F7F6F3", textAlign: "left" as const, marginBottom: 6, transition: "all 0.12s" }}>
+                  <span style={{ fontSize: 18 }}>{s.icon}</span>
+                  <div style={{ flex: 1 }}>
+                    <div style={{ fontSize: 13, fontWeight: active ? 700 : 600, color: active ? "#0d9488" : "#1C1C1E" }}>{s.label}</div>
+                    <div style={{ fontSize: 11, color: "#9CA3AF", marginTop: 1 }}>{s.desc}</div>
+                  </div>
+                  {active && <span style={{ fontSize: 13, color: "#0d9488" }}>✓</span>}
+                </button>
+              );
+            })}
+          </div>
+        )}
+      </div>
+
+      {(activeType !== "All") && (
+        <div style={{ padding: "0 12px 12px" }}>
+          <button onClick={() => { onType("All"); onSort("newest"); onClose(); }}
+            style={{ width: "100%", padding: "9px", borderRadius: 10, border: "1px solid #FECACA", background: "#FEF2F2", color: "#ef4444", fontSize: 12, fontWeight: 700, cursor: "pointer" }}>
+            ✕ Clear filters
+          </button>
+        </div>
+      )}
+    </div>
+  );
 }
 
 type CatInfo = { label: string; description: string; emoji: string; matches: string[] };
 
-export default function CategoryPageClient({ posts, category, slug }: { posts: any[]; category: CatInfo; slug: string }) {
-  const [search, setSearch] = useState("");
+export default function CategoryPageClient({ posts, category }: { posts: any[]; category: CatInfo; slug: string }) {
+  const [search, setSearch]         = useState("");
   const [activeType, setActiveType] = useState("All");
-  const [sort, setSort] = useState("newest");
+  const [sort, setSort]             = useState("newest");
+  const [filterOpen, setFilterOpen] = useState(false);
+  const filterBtnRef = useRef<HTMLButtonElement>(null);
 
   const hasReviews = posts.some(p => p.articleType === "review");
-  const hasGuides = posts.some(p => p.articleType === "comparison");
-  const hasFilters = search || activeType !== "All";
+  const hasGuides  = posts.some(p => p.articleType === "comparison");
+  const activeCount = [activeType !== "All", sort !== "newest"].filter(Boolean).length;
 
   const filtered = useMemo(() => {
     let result = [...posts];
@@ -42,7 +148,7 @@ export default function CategoryPageClient({ posts, category, slug }: { posts: a
       const q = search.toLowerCase();
       result = result.filter(p => p.title.toLowerCase().includes(q) || p.excerpt.toLowerCase().includes(q) || p.category.toLowerCase().includes(q));
     }
-    if (activeType === "Guide") result = result.filter(p => p.articleType === "comparison");
+    if (activeType === "Guide")  result = result.filter(p => p.articleType === "comparison");
     if (activeType === "Review") result = result.filter(p => p.articleType === "review");
     if (sort === "oldest") result.reverse();
     return result;
@@ -50,8 +156,6 @@ export default function CategoryPageClient({ posts, category, slug }: { posts: a
 
   return (
     <div style={{ backgroundColor: "#F7F6F3", minHeight: "100vh" }}>
-
-      {/* Hero */}
       <div style={{ background: "linear-gradient(135deg,#1C1C1E 0%,#2a2a2d 100%)", padding: "48px 20px 40px" }}>
         <div style={{ maxWidth: 860, margin: "0 auto" }}>
           <Link href="/" style={{ display: "inline-flex", alignItems: "center", gap: 6, fontSize: 13, color: "#0d9488", textDecoration: "none", fontWeight: 600, marginBottom: 16 }}>← Home</Link>
@@ -61,68 +165,58 @@ export default function CategoryPageClient({ posts, category, slug }: { posts: a
           </div>
           <p style={{ fontSize: 15, color: "#9CA3AF", lineHeight: 1.7, marginBottom: 28, maxWidth: 520 }}>{category.description}</p>
 
-          {/* Search */}
-          <div style={{ position: "relative" as const, maxWidth: 520 }}>
-            <div style={{ position: "absolute" as const, left: 16, top: "50%", transform: "translateY(-50%)", fontSize: 16, pointerEvents: "none" as const }}>🔍</div>
-            <input type="text" placeholder={`Search in ${category.label}...`} value={search} onChange={e => setSearch(e.target.value)}
-              style={{ width: "100%", padding: "13px 44px 13px 46px", borderRadius: 14, border: "none", fontSize: 14, outline: "none", background: "#fff", color: "#1C1C1E", boxSizing: "border-box" as const, boxShadow: "0 4px 20px rgba(0,0,0,0.2)" }} />
-            {search && (
-              <button onClick={() => setSearch("")} style={{ position: "absolute" as const, right: 14, top: "50%", transform: "translateY(-50%)", background: "#E5E4E0", border: "none", borderRadius: "50%", width: 22, height: 22, fontSize: 11, cursor: "pointer", color: "#374151" }}>✕</button>
-            )}
-          </div>
-        </div>
-      </div>
-
-      {/* Filter bar — same capsule design as blog page */}
-      <div style={{ background: "#fff", borderBottom: "1px solid #E5E4E0", padding: "14px 20px", position: "sticky" as const, top: 58, zIndex: 10 }}>
-        <div style={{ maxWidth: 860, margin: "0 auto", display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12, flexWrap: "wrap" as const }}>
-
-          {/* Left — type filter capsule */}
-          <div style={{ display: "flex", alignItems: "center", gap: 6, flexWrap: "wrap" as const, flex: 1 }}>
-            <div style={{ display: "flex", gap: 4, background: "#F7F6F3", borderRadius: 100, padding: "3px", border: "1px solid #E5E4E0" }}>
-              <button onClick={() => setActiveType("All")}
-                style={{ fontSize: 12, fontWeight: 700, padding: "5px 14px", borderRadius: 100, border: "none", cursor: "pointer", transition: "all 0.15s", background: activeType === "All" ? "#0d9488" : "transparent", color: activeType === "All" ? "#fff" : "#6B7280" }}>
-                All
-              </button>
-              {hasGuides && (
-                <button onClick={() => setActiveType("Guide")}
-                  style={{ fontSize: 12, fontWeight: 700, padding: "5px 14px", borderRadius: 100, border: "none", cursor: "pointer", transition: "all 0.15s", background: activeType === "Guide" ? "#0d9488" : "transparent", color: activeType === "Guide" ? "#fff" : "#6B7280" }}>
-                  🗂 Guides
-                </button>
-              )}
-              {hasReviews && (
-                <button onClick={() => setActiveType("Review")}
-                  style={{ fontSize: 12, fontWeight: 700, padding: "5px 14px", borderRadius: 100, border: "none", cursor: "pointer", transition: "all 0.15s", background: activeType === "Review" ? "#0d9488" : "transparent", color: activeType === "Review" ? "#fff" : "#6B7280" }}>
-                  ⭐ Reviews
-                </button>
-              )}
+          {/* Search + Filter button */}
+          <div style={{ display: "flex", gap: 8, alignItems: "center", maxWidth: 520 }}>
+            <div style={{ position: "relative" as const, flex: 1 }}>
+              <div style={{ position: "absolute" as const, left: 14, top: "50%", transform: "translateY(-50%)", fontSize: 15, pointerEvents: "none" as const }}>🔍</div>
+              <input type="text" placeholder={`Search in ${category.label}...`} value={search} onChange={e => setSearch(e.target.value)}
+                style={{ width: "100%", padding: "13px 38px 13px 42px", borderRadius: 14, border: "none", fontSize: 14, outline: "none", background: "#fff", color: "#1C1C1E", boxSizing: "border-box" as const, boxShadow: "0 4px 20px rgba(0,0,0,0.15)" }} />
+              {search && <button onClick={() => setSearch("")} style={{ position: "absolute" as const, right: 10, top: "50%", transform: "translateY(-50%)", background: "#E5E4E0", border: "none", borderRadius: "50%", width: 20, height: 20, fontSize: 10, cursor: "pointer", color: "#374151", display: "flex", alignItems: "center", justifyContent: "center" }}>✕</button>}
             </div>
 
-            {/* Clear — only when active */}
-            {hasFilters && (
-              <button onClick={() => { setSearch(""); setActiveType("All"); }}
-                style={{ fontSize: 12, fontWeight: 600, color: "#ef4444", background: "#FEF2F2", border: "1px solid #FECACA", borderRadius: 100, padding: "5px 12px", cursor: "pointer" }}>
-                ✕ Clear
+            <div style={{ position: "relative" as const, flexShrink: 0 }}>
+              <button ref={filterBtnRef} onClick={() => setFilterOpen(v => !v)}
+                style={{ display: "flex", alignItems: "center", gap: 7, padding: "13px 18px", borderRadius: 14, border: "none", cursor: "pointer", fontWeight: 700, fontSize: 13, background: activeCount > 0 ? "#0d9488" : "#fff", color: activeCount > 0 ? "#fff" : "#374151", boxShadow: "0 4px 20px rgba(0,0,0,0.15)", transition: "all 0.15s" }}>
+                <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M1 3h12M3 7h8M5 11h4" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round"/></svg>
+                Filters
+                {activeCount > 0
+                  ? <span style={{ background: "rgba(255,255,255,0.25)", borderRadius: 100, padding: "1px 8px", fontSize: 11, fontWeight: 900 }}>{activeCount}</span>
+                  : <span style={{ fontSize: 10, opacity: 0.45, marginLeft: 2 }}>{filterOpen ? "▲" : "▼"}</span>
+                }
               </button>
-            )}
+              <FilterPopover
+                open={filterOpen} onClose={() => setFilterOpen(false)} anchorRef={filterBtnRef}
+                hasGuides={hasGuides} hasReviews={hasReviews}
+                activeType={activeType} sort={sort}
+                onType={setActiveType} onSort={setSort}
+              />
+            </div>
           </div>
 
-          {/* Right — sort always on same row */}
-          <select value={sort} onChange={e => setSort(e.target.value)}
-            style={{ fontSize: 12, fontWeight: 600, padding: "8px 14px", borderRadius: 100, border: "1.5px solid #E5E4E0", background: "#F7F6F3", color: "#374151", cursor: "pointer", outline: "none", flexShrink: 0 }}>
-            <option value="newest">↓ Newest</option>
-            <option value="oldest">↑ Oldest</option>
-          </select>
-
+          {/* Active pills */}
+          {(activeType !== "All" || sort !== "newest") && (
+            <div style={{ display: "flex", gap: 6, flexWrap: "wrap" as const, marginTop: 14 }}>
+              {activeType !== "All" && (
+                <span style={{ display: "inline-flex", alignItems: "center", gap: 5, fontSize: 12, fontWeight: 600, background: "rgba(255,255,255,0.12)", color: "#fff", borderRadius: 100, padding: "5px 12px", border: "1px solid rgba(255,255,255,0.2)" }}>
+                  {activeType === "Guide" ? "🗂 Guides" : "⭐ Reviews"}
+                  <button onClick={() => setActiveType("All")} style={{ background: "none", border: "none", cursor: "pointer", color: "#fff", fontSize: 11, padding: 0, opacity: 0.7 }}>✕</button>
+                </span>
+              )}
+              {sort !== "newest" && (
+                <span style={{ display: "inline-flex", alignItems: "center", gap: 5, fontSize: 12, fontWeight: 600, background: "rgba(255,255,255,0.12)", color: "#fff", borderRadius: 100, padding: "5px 12px", border: "1px solid rgba(255,255,255,0.2)" }}>
+                  📅 Oldest first
+                  <button onClick={() => setSort("newest")} style={{ background: "none", border: "none", cursor: "pointer", color: "#fff", fontSize: 11, padding: 0, opacity: 0.7 }}>✕</button>
+                </span>
+              )}
+            </div>
+          )}
         </div>
       </div>
 
-      <div style={{ maxWidth: 860, margin: "0 auto", padding: "32px 20px 80px" }}>
-
+      <div style={{ maxWidth: 860, margin: "0 auto", padding: "28px 20px 80px" }}>
         <p style={{ fontSize: 13, color: "#9CA3AF", marginBottom: 20 }}>
           {filtered.length === 0 ? "No results" : `${filtered.length} guide${filtered.length !== 1 ? "s" : ""}`}
         </p>
-
         {filtered.length === 0 ? (
           posts.length === 0 ? (
             <div style={{ textAlign: "center" as const, padding: "64px 24px", background: "#fff", borderRadius: 20, border: "1px solid #E5E4E0" }}>
@@ -135,7 +229,8 @@ export default function CategoryPageClient({ posts, category, slug }: { posts: a
             <div style={{ textAlign: "center" as const, padding: "48px 24px", background: "#fff", borderRadius: 20, border: "1px solid #E5E4E0" }}>
               <div style={{ fontSize: 32, marginBottom: 12 }}>🔍</div>
               <p style={{ fontSize: 15, fontWeight: 700, color: "#1C1C1E", marginBottom: 6 }}>No results found</p>
-              <button onClick={() => { setSearch(""); setActiveType("All"); }} style={{ background: "#0d9488", color: "#fff", border: "none", padding: "10px 20px", borderRadius: 10, fontSize: 13, fontWeight: 700, cursor: "pointer", marginTop: 12 }}>Clear filters</button>
+              <button onClick={() => { setSearch(""); setActiveType("All"); setSort("newest"); }}
+                style={{ background: "#0d9488", color: "#fff", border: "none", padding: "10px 20px", borderRadius: 10, fontSize: 13, fontWeight: 700, cursor: "pointer", marginTop: 12 }}>Clear filters</button>
             </div>
           )
         ) : (
@@ -168,6 +263,12 @@ export default function CategoryPageClient({ posts, category, slug }: { posts: a
           </div>
         )}
       </div>
+      <style>{`
+        @keyframes popIn {
+          from { opacity: 0; transform: translateY(-8px) scale(0.96); }
+          to   { opacity: 1; transform: translateY(0) scale(1); }
+        }
+      `}</style>
     </div>
   );
 }
