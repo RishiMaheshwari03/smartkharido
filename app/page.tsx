@@ -3,7 +3,7 @@ import Link from "next/link";
 import type { Metadata } from "next";
 
 export const metadata: Metadata = {
-  title: "SmartKharido — Best Product Buying Guides for India (2025)",
+  title: "SmartKharido — Best Product Buying Guides for India",
   description: "Honest buying guides for smartphones, laptops, smartwatches and home appliances in India. Research-backed recommendations for Amazon India and Flipkart.",
 };
 
