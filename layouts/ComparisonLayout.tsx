@@ -3,9 +3,9 @@ import { MDXRemote } from "next-mdx-remote/rsc";
 
 type Spec = { label: string; value: string; rating?: number };
 type Product = {
-  name: string; best: string; display: string; battery: string;
-  price: string; amazon: string; flipkart: string;
-  overallRating: number; verdict: string; image?: string;
+  name: string; best: string; price: string;
+  amazon: string; flipkart: string; overallRating: number;
+  verdict: string; image?: string;
   specs: Spec[]; pros: string[]; cons: string[]; buyerProfile: string;
 };
 
@@ -39,8 +39,8 @@ function ProductCard({ product, index }: { product: Product; index: number }) {
   const pros = product.pros || [];
   const cons = product.cons || [];
   return (
-    <div className="product-card" style={{ marginBottom: 48, borderRadius: 20, overflow: "hidden", border: "1px solid #E5E4E0", boxShadow: "0 4px 20px rgba(0,0,0,0.06)" }}>
-      {/* Card header */}
+    <div className="product-card" style={{ marginBottom: 40, borderRadius: 20, overflow: "hidden", border: "1px solid #E5E4E0", boxShadow: "0 4px 20px rgba(0,0,0,0.06)" }}>
+      {/* Header */}
       <div style={{ background: "linear-gradient(90deg,#1C1C1E,#2a2a2d)", padding: "18px 20px", display: "flex", justifyContent: "space-between", alignItems: "center", gap: 12, flexWrap: "wrap" as const }}>
         <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
           <div style={{ width: 34, height: 34, borderRadius: "50%", background: "#0d9488", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 15, fontWeight: 900, color: "#fff", flexShrink: 0 }}>{index + 1}</div>
@@ -59,47 +59,57 @@ function ProductCard({ product, index }: { product: Product; index: number }) {
         </div>
       </div>
 
-      {/* Card body */}
+      {/* Body */}
       <div style={{ background: "#fff", padding: "20px" }}>
+        {/* Fix 4 — Byline */}
+        <div style={{ display: "flex", alignItems: "center", gap: 6, marginBottom: 14 }}>
+          <div style={{ width: 24, height: 24, borderRadius: "50%", background: "#0d9488", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 10, fontWeight: 900, color: "#fff", flexShrink: 0 }}>SK</div>
+          <span style={{ fontSize: 12, color: "#6B7280" }}>Reviewed by <strong style={{ color: "#374151", fontWeight: 700 }}>SmartKharido Team</strong></span>
+        </div>
+
         {/* Verdict */}
         <div style={{ background: "#F0FDF9", border: "1px solid #b2ddd8", borderRadius: 12, padding: "13px 16px", marginBottom: 20, display: "flex", gap: 10, alignItems: "flex-start" }}>
-          <span style={{ fontSize: 17, lineHeight: 1, flexShrink: 0, marginTop: 1 }}>💬</span>
+          <span style={{ fontSize: 16, lineHeight: 1, flexShrink: 0, marginTop: 1 }}>💬</span>
           <p style={{ margin: 0, fontSize: 14, color: "#065F46", lineHeight: 1.7 }}>
             <strong style={{ fontWeight: 700 }}>Our verdict: </strong>{product.verdict}
           </p>
         </div>
 
-        {/* Image + specs: side by side on desktop, stacked on mobile */}
-        <div className="image-specs-grid" style={{ display: "grid", gridTemplateColumns: product.image ? "1fr 1fr" : "1fr", gap: 16, marginBottom: 18, alignItems: "stretch" }}>
-          {product.image && (
-            <div style={{ borderRadius: 12, overflow: "hidden", border: "1px solid #E5E4E0", minHeight: 200 }}>
-              <img src={product.image} alt={product.name} style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }} />
-            </div>
-          )}
-          <div style={{ borderRadius: 12, overflow: "hidden", border: "1px solid #E5E4E0" }}>
-            <div style={{ background: "#1C1C1E", padding: "9px 14px" }}>
-              <span style={{ fontSize: 10, fontWeight: 700, color: "#fff", textTransform: "uppercase" as const, letterSpacing: 1.2 }}>Specifications</span>
-            </div>
-            {specs.map((spec, i) => (
-              <div key={i} style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", padding: "10px 14px", background: i % 2 === 0 ? "#fff" : "#FAFAF8", borderBottom: i < specs.length - 1 ? "1px solid #F3F4F6" : "none", gap: 10 }}>
-                <span style={{ fontSize: 12, color: "#6B7280", fontWeight: 500, flexShrink: 0 }}>{spec.label}</span>
-                <div style={{ textAlign: "right" as const }}>
-                  <div style={{ fontSize: 12, fontWeight: 700, color: "#1C1C1E" }}>{spec.value}</div>
-                  {spec.rating !== undefined && <DotRating rating={spec.rating} />}
-                </div>
-              </div>
-            ))}
+        {/* Fix 6 — Image with consistent aspect ratio, stacks on mobile */}
+        {product.image && (
+          <div style={{ borderRadius: 12, overflow: "hidden", border: "1px solid #E5E4E0", marginBottom: 16, aspectRatio: "16/7", position: "relative" as const }}>
+            <img
+              src={product.image}
+              alt={product.name}
+              style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }}
+            />
           </div>
+        )}
+
+        {/* Fix 5 — Specs: single full-width column */}
+        <div style={{ borderRadius: 12, overflow: "hidden", border: "1px solid #E5E4E0", marginBottom: 18 }}>
+          <div style={{ background: "#1C1C1E", padding: "9px 16px" }}>
+            <span style={{ fontSize: 10, fontWeight: 700, color: "#fff", textTransform: "uppercase" as const, letterSpacing: 1.2 }}>Specifications</span>
+          </div>
+          {specs.map((spec, i) => (
+            <div key={i} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "11px 16px", background: i % 2 === 0 ? "#fff" : "#FAFAF8", borderBottom: i < specs.length - 1 ? "1px solid #F3F4F6" : "none", gap: 12 }}>
+              <span style={{ fontSize: 13, color: "#6B7280", fontWeight: 500 }}>{spec.label}</span>
+              <div style={{ display: "flex", alignItems: "center", gap: 10, flexShrink: 0 }}>
+                {spec.rating !== undefined && <DotRating rating={spec.rating} />}
+                <span style={{ fontSize: 13, fontWeight: 700, color: "#1C1C1E", textAlign: "right" as const }}>{spec.value}</span>
+              </div>
+            </div>
+          ))}
         </div>
 
-        {/* Pros / Cons: side by side desktop, stacked mobile */}
+        {/* Pros / Cons */}
         <div className="pros-cons-grid" style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12, marginBottom: 16 }}>
           <div style={{ background: "#F0FDF9", borderRadius: 12, padding: "14px 16px", border: "1px solid #bbf7d0" }}>
             <div style={{ fontSize: 10, fontWeight: 800, color: "#15803d", textTransform: "uppercase" as const, letterSpacing: 1, marginBottom: 10 }}>✓ Why we like it</div>
             {pros.map((pro, i) => (
               <div key={i} style={{ display: "flex", gap: 7, alignItems: "flex-start", marginBottom: 7 }}>
                 <span style={{ color: "#16a34a", fontSize: 11, fontWeight: 800, flexShrink: 0, marginTop: 2 }}>✓</span>
-                <span style={{ fontSize: 13, color: "#166534", lineHeight: 1.55 }}>{pro}</span>
+                <span style={{ fontSize: 14, color: "#166534", lineHeight: 1.55 }}>{pro}</span>
               </div>
             ))}
           </div>
@@ -108,7 +118,7 @@ function ProductCard({ product, index }: { product: Product; index: number }) {
             {cons.map((con, i) => (
               <div key={i} style={{ display: "flex", gap: 7, alignItems: "flex-start", marginBottom: 7 }}>
                 <span style={{ color: "#ea580c", fontSize: 11, fontWeight: 800, flexShrink: 0, marginTop: 2 }}>✗</span>
-                <span style={{ fontSize: 13, color: "#9a3412", lineHeight: 1.55 }}>{con}</span>
+                <span style={{ fontSize: 14, color: "#9a3412", lineHeight: 1.55 }}>{con}</span>
               </div>
             ))}
           </div>
@@ -117,7 +127,7 @@ function ProductCard({ product, index }: { product: Product; index: number }) {
         {/* Who should buy */}
         <div style={{ background: "#F8FAFC", border: "1px solid #E2E8F0", borderRadius: 10, padding: "11px 14px", marginBottom: 16 }}>
           <span style={{ fontSize: 12, fontWeight: 700, color: "#475569" }}>👤 Who should buy this: </span>
-          <span style={{ fontSize: 13, color: "#64748B", lineHeight: 1.6 }}>{product.buyerProfile}</span>
+          <span style={{ fontSize: 14, color: "#64748B", lineHeight: 1.6 }}>{product.buyerProfile}</span>
         </div>
 
         {/* Buy buttons */}
@@ -154,7 +164,6 @@ export default function ComparisonLayout({ post }: { post: any }) {
   const products: Product[] = post.products || [];
   return (
     <div style={{ backgroundColor: "#F7F6F3", minHeight: "100vh" }}>
-
       {/* Hero */}
       <div style={{ backgroundColor: "#fff", borderBottom: "1px solid #E5E4E0", padding: "40px 20px 28px" }}>
         <div style={{ maxWidth: 860, margin: "0 auto" }}>
@@ -164,8 +173,13 @@ export default function ComparisonLayout({ post }: { post: any }) {
             <span style={{ fontSize: 12, color: "#bbb" }}>· {post.readTime} read · {new Date(post.date).toLocaleDateString("en-IN", { day: "numeric", month: "long", year: "numeric" })}</span>
           </div>
           <h1 style={{ fontSize: "clamp(20px, 3.5vw, 36px)", fontWeight: 800, color: "#1C1C1E", lineHeight: 1.25, letterSpacing: "-0.5px", marginBottom: 12 }}>{post.title}</h1>
-          <p style={{ fontSize: 15, color: "#6B7280", lineHeight: 1.7, marginBottom: 16, maxWidth: 680 }}>{post.excerpt}</p>
-          <div className="badge-row" style={{ display: "flex", gap: 8, flexWrap: "wrap" as const, marginBottom: 10 }}>
+          {/* Fix 4 — Byline on article hero */}
+          <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 14 }}>
+            <div style={{ width: 28, height: 28, borderRadius: "50%", background: "#0d9488", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 10, fontWeight: 900, color: "#fff", flexShrink: 0 }}>SK</div>
+            <span style={{ fontSize: 13, color: "#6B7280" }}>By <strong style={{ color: "#374151", fontWeight: 700 }}>SmartKharido Team</strong> · Independently researched</span>
+          </div>
+          <p style={{ fontSize: 15, color: "#6B7280", lineHeight: 1.7, marginBottom: 16 }}>{post.excerpt}</p>
+          <div style={{ display: "flex", gap: 8, flexWrap: "wrap" as const, marginBottom: 10 }}>
             {["✅ Amazon India verified", "✅ Flipkart verified", "✅ Indian service checked"].map(b => (
               <span key={b} style={{ fontSize: 12, color: "#065F46", backgroundColor: "#ECFDF5", padding: "4px 12px", borderRadius: 100, fontWeight: 600 }}>{b}</span>
             ))}
@@ -175,17 +189,15 @@ export default function ComparisonLayout({ post }: { post: any }) {
       </div>
 
       <div style={{ maxWidth: 860, margin: "0 auto", padding: "32px 16px 80px" }}>
-
-        {/* Quick Comparison Table — scrollable on mobile */}
+        {/* Quick Comparison Table */}
         {products.length > 0 && (
           <div style={{ marginBottom: 40 }}>
             <h2 style={{ fontSize: 18, fontWeight: 800, color: "#1C1C1E", marginBottom: 14, letterSpacing: "-0.3px", display: "flex", alignItems: "center", gap: 10 }}>
               <span style={{ display: "inline-block", width: 4, height: 20, background: "#0d9488", borderRadius: 2, flexShrink: 0 }} />
               Quick Comparison — All {products.length} Picks
             </h2>
-            {/* Wrapper div enables horizontal scroll on mobile only */}
             <div style={{ overflowX: "auto", borderRadius: 14, border: "1px solid #E5E4E0", boxShadow: "0 2px 8px rgba(0,0,0,0.06)" }}>
-              <table style={{ width: "100%", minWidth: 520, borderCollapse: "collapse", fontSize: 13, background: "#fff" }}>
+              <table style={{ width: "100%", minWidth: 480, borderCollapse: "collapse", fontSize: 13, background: "#fff" }}>
                 <thead>
                   <tr style={{ background: "#1C1C1E" }}>
                     {["#", "Product", "Best For", "Rating", "Price", "Buy"].map(h => (
@@ -196,11 +208,11 @@ export default function ComparisonLayout({ post }: { post: any }) {
                 <tbody>
                   {products.map((p, i) => (
                     <tr key={p.name} style={{ background: i % 2 === 0 ? "#fff" : "#FAFAF8" }}>
-                      <td style={{ padding: "12px 14px", borderBottom: "1px solid #F3F4F6", color: "#9CA3AF", fontWeight: 700, fontSize: 12, whiteSpace: "nowrap" as const }}>#{i + 1}</td>
+                      <td style={{ padding: "12px 14px", borderBottom: "1px solid #F3F4F6", color: "#9CA3AF", fontWeight: 700, fontSize: 12 }}>#{i + 1}</td>
                       <td style={{ padding: "12px 14px", borderBottom: "1px solid #F3F4F6", minWidth: 130 }}>
                         <a href={p.amazon} target="_blank" rel="noopener noreferrer" style={{ fontWeight: 700, color: "#1C1C1E", textDecoration: "none", borderBottom: "1.5px solid #0d948860", fontSize: 12 }}>{p.name}</a>
                       </td>
-                      <td style={{ padding: "12px 14px", color: "#0d9488", fontWeight: 600, borderBottom: "1px solid #F3F4F6", fontSize: 12, minWidth: 100 }}>{p.best}</td>
+                      <td style={{ padding: "12px 14px", color: "#0d9488", fontWeight: 600, borderBottom: "1px solid #F3F4F6", fontSize: 12 }}>{p.best}</td>
                       <td style={{ padding: "12px 14px", borderBottom: "1px solid #F3F4F6", whiteSpace: "nowrap" as const }}>
                         <span style={{ fontWeight: 800, color: "#0d9488", fontSize: 14 }}>{p.overallRating}</span>
                         <span style={{ color: "#9CA3AF", fontSize: 11 }}>/10</span>
@@ -221,20 +233,17 @@ export default function ComparisonLayout({ post }: { post: any }) {
           </div>
         )}
 
-        {/* MDX content */}
         <MDXRemote source={post.content} components={mdxComponents} />
-
-        {/* Product cards */}
         {products.map((product, i) => <ProductCard key={product.name} product={product} index={i} />)}
 
-        {/* Final Verdict — scrollable on mobile */}
+        {/* Final Verdict */}
         <div id="final-verdict" style={{ marginBottom: 48 }}>
           <h2 style={{ fontSize: 18, fontWeight: 800, color: "#1C1C1E", marginBottom: 4, letterSpacing: "-0.3px", display: "flex", alignItems: "center", gap: 10 }}>
             <span style={{ display: "inline-block", width: 4, height: 20, background: "#0d9488", borderRadius: 2, flexShrink: 0 }} />Final Verdict
           </h2>
           <p style={{ fontSize: 13, color: "#9CA3AF", marginBottom: 14 }}>Click any product name to check the current price on Amazon India.</p>
           <div style={{ overflowX: "auto", borderRadius: 14, border: "1px solid #E5E4E0", boxShadow: "0 2px 8px rgba(0,0,0,0.06)" }}>
-            <table style={{ width: "100%", minWidth: 340, borderCollapse: "collapse", fontSize: 14, background: "#fff" }}>
+            <table style={{ width: "100%", minWidth: 320, borderCollapse: "collapse", fontSize: 14, background: "#fff" }}>
               <thead>
                 <tr style={{ background: "#1C1C1E" }}>
                   <th style={{ padding: "12px 18px", textAlign: "left" as const, color: "#fff", fontSize: 11, fontWeight: 700, textTransform: "uppercase" as const, width: "45%" }}>Your Priority</th>
@@ -257,43 +266,18 @@ export default function ComparisonLayout({ post }: { post: any }) {
           </div>
         </div>
 
-        {/* CTA */}
         <div style={{ padding: "32px 24px", background: "linear-gradient(135deg, #0d9488 0%, #0f766e 100%)", borderRadius: 20, textAlign: "center" as const, color: "#fff" }}>
-          <p style={{ fontSize: 20, fontWeight: 800, marginBottom: 8, letterSpacing: "-0.3px" }}>Found this guide helpful?</p>
+          <p style={{ fontSize: 20, fontWeight: 800, marginBottom: 8 }}>Found this guide helpful?</p>
           <p style={{ fontSize: 14, opacity: 0.85, marginBottom: 22 }}>Browse more honest buying guides for Indian buyers</p>
           <Link href="/blog" style={{ display: "inline-flex", alignItems: "center", gap: 8, backgroundColor: "#fff", color: "#0d9488", fontWeight: 800, fontSize: 14, padding: "13px 28px", borderRadius: 12, textDecoration: "none" }}>Browse All Guides →</Link>
         </div>
       </div>
 
-      {/* ── Mobile responsive styles ── */}
       <style>{`
         @media (max-width: 640px) {
-
-          /* Image + specs: stack vertically on mobile */
-          .image-specs-grid {
-            grid-template-columns: 1fr !important;
-          }
-
-          /* Pros / Cons: stack vertically on mobile */
-          .pros-cons-grid {
-            grid-template-columns: 1fr !important;
-          }
-
-          /* Buy buttons: full width stack on mobile */
-          .buy-buttons {
-            grid-template-columns: 1fr !important;
-          }
-
-          /* Product card header: stack name + rating vertically */
-          .product-card > div:first-child {
-            flex-direction: column !important;
-            align-items: flex-start !important;
-          }
-
-          /* Star bar on mobile: slightly smaller */
-          .product-card > div:first-child > div:last-child {
-            text-align: left !important;
-          }
+          .pros-cons-grid { grid-template-columns: 1fr !important; }
+          .buy-buttons { grid-template-columns: 1fr !important; }
+          .product-card > div:first-child { flex-direction: column !important; align-items: flex-start !important; }
         }
       `}</style>
     </div>
