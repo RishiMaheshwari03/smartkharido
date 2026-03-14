@@ -10,15 +10,21 @@ type Product = {
 };
 
 function StarBar({ score }: { score: number }) {
+  // UX 3 — no bar on mobile, just number
   return (
-    <div style={{ display: "flex", alignItems: "center", gap: 5 }}>
-      <div style={{ display: "flex", gap: 2 }}>
-        {Array.from({ length: 10 }, (_, i) => (
-          <div key={i} style={{ width: 13, height: 5, borderRadius: 3, background: i < score ? "#0d9488" : "#3a3a3c" }} />
-        ))}
+    <>
+      <div className="star-bar-desktop" style={{ display: "flex", alignItems: "center", gap: 5 }}>
+        <div style={{ display: "flex", gap: 2 }}>
+          {Array.from({ length: 10 }, (_, i) => (
+            <div key={i} style={{ width: 13, height: 5, borderRadius: 3, background: i < score ? "#0d9488" : "#3a3a3c" }} />
+          ))}
+        </div>
+        <span style={{ fontSize: 12, fontWeight: 800, color: "#0d9488" }}>{score}/10</span>
       </div>
-      <span style={{ fontSize: 12, fontWeight: 800, color: "#0d9488" }}>{score}/10</span>
-    </div>
+      <div className="star-bar-mobile" style={{ display: "none" }}>
+        <span style={{ fontSize: 14, fontWeight: 900, color: "#0d9488" }}>{score}<span style={{ fontSize: 11, color: "#666" }}>/10</span></span>
+      </div>
+    </>
   );
 }
 
@@ -29,7 +35,6 @@ function DotRating({ rating }: { rating: number }) {
       {Array.from({ length: 5 }, (_, i) => (
         <div key={i} style={{ width: 6, height: 6, borderRadius: "50%", background: i < filled ? "#0d9488" : "#E5E4E0" }} />
       ))}
-      <span style={{ fontSize: 10, color: "#aaa", marginLeft: 2 }}>{rating}/10</span>
     </div>
   );
 }
@@ -40,53 +45,40 @@ function ProductCard({ product, index }: { product: Product; index: number }) {
   const cons = product.cons || [];
   return (
     <div className="product-card" style={{ marginBottom: 40, borderRadius: 20, overflow: "hidden", border: "1px solid #E5E4E0", boxShadow: "0 4px 20px rgba(0,0,0,0.06)" }}>
-      {/* Header */}
-      <div style={{ background: "linear-gradient(90deg,#1C1C1E,#2a2a2d)", padding: "18px 20px", display: "flex", justifyContent: "space-between", alignItems: "center", gap: 12, flexWrap: "wrap" as const }}>
+      <div style={{ background: "linear-gradient(90deg,#1C1C1E,#2a2a2d)", padding: "16px 20px", display: "flex", justifyContent: "space-between", alignItems: "center", gap: 12, flexWrap: "wrap" as const }}>
         <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
-          <div style={{ width: 34, height: 34, borderRadius: "50%", background: "#0d9488", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 15, fontWeight: 900, color: "#fff", flexShrink: 0 }}>{index + 1}</div>
+          <div style={{ width: 32, height: 32, borderRadius: "50%", background: "#0d9488", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 14, fontWeight: 900, color: "#fff", flexShrink: 0 }}>{index + 1}</div>
           <div>
-            <div style={{ fontSize: 16, fontWeight: 800, color: "#fff", letterSpacing: "-0.3px", lineHeight: 1.2 }}>{product.name}</div>
+            <div style={{ fontSize: 15, fontWeight: 800, color: "#fff", letterSpacing: "-0.2px", lineHeight: 1.2 }}>{product.name}</div>
             <div style={{ fontSize: 11, color: "#f59e0b", fontWeight: 700, marginTop: 2 }}>🏆 {product.best}</div>
           </div>
         </div>
-        <div style={{ textAlign: "right" as const }}>
-          <div style={{ fontSize: 9, color: "#888", textTransform: "uppercase" as const, letterSpacing: 1, marginBottom: 2 }}>Overall Rating</div>
-          <div style={{ display: "flex", alignItems: "baseline", gap: 1, justifyContent: "flex-end", marginBottom: 4 }}>
-            <span style={{ fontSize: 28, fontWeight: 900, color: "#0d9488", lineHeight: 1 }}>{product.overallRating}</span>
-            <span style={{ fontSize: 13, color: "#666", marginLeft: 2 }}>/10</span>
-          </div>
+        {/* UX 3 — rating stays compact, no overflow */}
+        <div style={{ flexShrink: 0 }}>
+          <div style={{ fontSize: 9, color: "#888", textTransform: "uppercase" as const, letterSpacing: 1, marginBottom: 3, textAlign: "right" as const }}>Rating</div>
           <StarBar score={product.overallRating} />
         </div>
       </div>
 
-      {/* Body */}
       <div style={{ background: "#fff", padding: "20px" }}>
-        {/* Fix 4 — Byline */}
         <div style={{ display: "flex", alignItems: "center", gap: 6, marginBottom: 14 }}>
-          <div style={{ width: 24, height: 24, borderRadius: "50%", background: "#0d9488", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 10, fontWeight: 900, color: "#fff", flexShrink: 0 }}>SK</div>
+          <div style={{ width: 22, height: 22, borderRadius: "50%", background: "#0d9488", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 9, fontWeight: 900, color: "#fff", flexShrink: 0 }}>SK</div>
           <span style={{ fontSize: 12, color: "#6B7280" }}>Reviewed by <strong style={{ color: "#374151", fontWeight: 700 }}>SmartKharido Team</strong></span>
         </div>
 
-        {/* Verdict */}
-        <div style={{ background: "#F0FDF9", border: "1px solid #b2ddd8", borderRadius: 12, padding: "13px 16px", marginBottom: 20, display: "flex", gap: 10, alignItems: "flex-start" }}>
+        <div style={{ background: "#F0FDF9", border: "1px solid #b2ddd8", borderRadius: 12, padding: "13px 16px", marginBottom: 18, display: "flex", gap: 10, alignItems: "flex-start" }}>
           <span style={{ fontSize: 16, lineHeight: 1, flexShrink: 0, marginTop: 1 }}>💬</span>
           <p style={{ margin: 0, fontSize: 14, color: "#065F46", lineHeight: 1.7 }}>
             <strong style={{ fontWeight: 700 }}>Our verdict: </strong>{product.verdict}
           </p>
         </div>
 
-        {/* Fix 6 — Image with consistent aspect ratio, stacks on mobile */}
         {product.image && (
-          <div style={{ borderRadius: 12, overflow: "hidden", border: "1px solid #E5E4E0", marginBottom: 16, aspectRatio: "16/7", position: "relative" as const }}>
-            <img
-              src={product.image}
-              alt={product.name}
-              style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }}
-            />
+          <div style={{ borderRadius: 12, overflow: "hidden", border: "1px solid #E5E4E0", marginBottom: 16, aspectRatio: "16/7" }}>
+            <img src={product.image} alt={product.name} style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }} />
           </div>
         )}
 
-        {/* Fix 5 — Specs: single full-width column */}
         <div style={{ borderRadius: 12, overflow: "hidden", border: "1px solid #E5E4E0", marginBottom: 18 }}>
           <div style={{ background: "#1C1C1E", padding: "9px 16px" }}>
             <span style={{ fontSize: 10, fontWeight: 700, color: "#fff", textTransform: "uppercase" as const, letterSpacing: 1.2 }}>Specifications</span>
@@ -94,7 +86,7 @@ function ProductCard({ product, index }: { product: Product; index: number }) {
           {specs.map((spec, i) => (
             <div key={i} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "11px 16px", background: i % 2 === 0 ? "#fff" : "#FAFAF8", borderBottom: i < specs.length - 1 ? "1px solid #F3F4F6" : "none", gap: 12 }}>
               <span style={{ fontSize: 13, color: "#6B7280", fontWeight: 500 }}>{spec.label}</span>
-              <div style={{ display: "flex", alignItems: "center", gap: 10, flexShrink: 0 }}>
+              <div style={{ display: "flex", alignItems: "center", gap: 8, flexShrink: 0 }}>
                 {spec.rating !== undefined && <DotRating rating={spec.rating} />}
                 <span style={{ fontSize: 13, fontWeight: 700, color: "#1C1C1E", textAlign: "right" as const }}>{spec.value}</span>
               </div>
@@ -102,35 +94,33 @@ function ProductCard({ product, index }: { product: Product; index: number }) {
           ))}
         </div>
 
-        {/* Pros / Cons */}
+        {/* UX 6 — 14px pros/cons text */}
         <div className="pros-cons-grid" style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12, marginBottom: 16 }}>
           <div style={{ background: "#F0FDF9", borderRadius: 12, padding: "14px 16px", border: "1px solid #bbf7d0" }}>
             <div style={{ fontSize: 10, fontWeight: 800, color: "#15803d", textTransform: "uppercase" as const, letterSpacing: 1, marginBottom: 10 }}>✓ Why we like it</div>
             {pros.map((pro, i) => (
               <div key={i} style={{ display: "flex", gap: 7, alignItems: "flex-start", marginBottom: 7 }}>
-                <span style={{ color: "#16a34a", fontSize: 11, fontWeight: 800, flexShrink: 0, marginTop: 2 }}>✓</span>
-                <span style={{ fontSize: 14, color: "#166534", lineHeight: 1.55 }}>{pro}</span>
+                <span style={{ color: "#16a34a", fontSize: 11, fontWeight: 800, flexShrink: 0, marginTop: 3 }}>✓</span>
+                <span style={{ fontSize: 14, color: "#166534", lineHeight: 1.6 }}>{pro}</span>
               </div>
             ))}
           </div>
           <div style={{ background: "#FFF7ED", borderRadius: 12, padding: "14px 16px", border: "1px solid #fed7aa" }}>
-            <div style={{ fontSize: 10, fontWeight: 800, color: "#c2410c", textTransform: "uppercase" as const, letterSpacing: 1, marginBottom: 10 }}>✗ Where it falls short</div>
+            <div style={{ fontSize: 10, fontWeight: 800, color: "#c2410c", textTransform: "uppercase" as const, letterSpacing: 1, marginBottom: 10 }}>✗ Falls short</div>
             {cons.map((con, i) => (
               <div key={i} style={{ display: "flex", gap: 7, alignItems: "flex-start", marginBottom: 7 }}>
-                <span style={{ color: "#ea580c", fontSize: 11, fontWeight: 800, flexShrink: 0, marginTop: 2 }}>✗</span>
-                <span style={{ fontSize: 14, color: "#9a3412", lineHeight: 1.55 }}>{con}</span>
+                <span style={{ color: "#ea580c", fontSize: 11, fontWeight: 800, flexShrink: 0, marginTop: 3 }}>✗</span>
+                <span style={{ fontSize: 14, color: "#9a3412", lineHeight: 1.6 }}>{con}</span>
               </div>
             ))}
           </div>
         </div>
 
-        {/* Who should buy */}
         <div style={{ background: "#F8FAFC", border: "1px solid #E2E8F0", borderRadius: 10, padding: "11px 14px", marginBottom: 16 }}>
-          <span style={{ fontSize: 12, fontWeight: 700, color: "#475569" }}>👤 Who should buy this: </span>
+          <span style={{ fontSize: 12, fontWeight: 700, color: "#475569" }}>👤 Who should buy: </span>
           <span style={{ fontSize: 14, color: "#64748B", lineHeight: 1.6 }}>{product.buyerProfile}</span>
         </div>
 
-        {/* Buy buttons */}
         <div className="buy-buttons" style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10 }}>
           <a href={product.amazon} target="_blank" rel="noopener noreferrer" style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 7, background: "#FF9900", color: "#fff", padding: "13px 16px", borderRadius: 12, fontSize: 14, fontWeight: 800, textDecoration: "none" }}>🛒 Amazon</a>
           <a href={product.flipkart} target="_blank" rel="noopener noreferrer" style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 7, background: "#2874F0", color: "#fff", padding: "13px 16px", borderRadius: 12, fontSize: 14, fontWeight: 800, textDecoration: "none" }}>🛒 Flipkart</a>
@@ -164,18 +154,22 @@ export default function ComparisonLayout({ post }: { post: any }) {
   const products: Product[] = post.products || [];
   return (
     <div style={{ backgroundColor: "#F7F6F3", minHeight: "100vh" }}>
-      {/* Hero */}
+
+      {/* UX 8 — better mobile hero padding */}
       <div style={{ backgroundColor: "#fff", borderBottom: "1px solid #E5E4E0", padding: "40px 20px 28px" }}>
         <div style={{ maxWidth: 860, margin: "0 auto" }}>
           <Link href="/blog" style={{ display: "inline-flex", alignItems: "center", gap: 6, fontSize: 13, color: "#0d9488", textDecoration: "none", fontWeight: 600, marginBottom: 18 }}>← Back to all guides</Link>
           <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 12, flexWrap: "wrap" as const }}>
             <span style={{ fontSize: 11, fontWeight: 700, textTransform: "uppercase" as const, letterSpacing: 1.5, color: "#0d9488", backgroundColor: "#E6F7F5", padding: "4px 12px", borderRadius: 100 }}>{post.category}</span>
-            <span style={{ fontSize: 12, color: "#bbb" }}>· {post.readTime} read · {new Date(post.date).toLocaleDateString("en-IN", { day: "numeric", month: "long", year: "numeric" })}</span>
+            <span style={{ fontSize: 12, color: "#bbb" }}>
+              · {post.readTime} read
+              {/* UX 7 — date always visible, on its own line if needed */}
+              · <span style={{ whiteSpace: "nowrap" as const }}>{new Date(post.date).toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric" })}</span>
+            </span>
           </div>
           <h1 style={{ fontSize: "clamp(20px, 3.5vw, 36px)", fontWeight: 800, color: "#1C1C1E", lineHeight: 1.25, letterSpacing: "-0.5px", marginBottom: 12 }}>{post.title}</h1>
-          {/* Fix 4 — Byline on article hero */}
           <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 14 }}>
-            <div style={{ width: 28, height: 28, borderRadius: "50%", background: "#0d9488", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 10, fontWeight: 900, color: "#fff", flexShrink: 0 }}>SK</div>
+            <div style={{ width: 26, height: 26, borderRadius: "50%", background: "#0d9488", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 9, fontWeight: 900, color: "#fff", flexShrink: 0 }}>SK</div>
             <span style={{ fontSize: 13, color: "#6B7280" }}>By <strong style={{ color: "#374151", fontWeight: 700 }}>SmartKharido Team</strong> · Independently researched</span>
           </div>
           <p style={{ fontSize: 15, color: "#6B7280", lineHeight: 1.7, marginBottom: 16 }}>{post.excerpt}</p>
@@ -189,19 +183,21 @@ export default function ComparisonLayout({ post }: { post: any }) {
       </div>
 
       <div style={{ maxWidth: 860, margin: "0 auto", padding: "32px 16px 80px" }}>
-        {/* Quick Comparison Table */}
+
         {products.length > 0 && (
           <div style={{ marginBottom: 40 }}>
             <h2 style={{ fontSize: 18, fontWeight: 800, color: "#1C1C1E", marginBottom: 14, letterSpacing: "-0.3px", display: "flex", alignItems: "center", gap: 10 }}>
               <span style={{ display: "inline-block", width: 4, height: 20, background: "#0d9488", borderRadius: 2, flexShrink: 0 }} />
               Quick Comparison — All {products.length} Picks
             </h2>
+            {/* UX 2 — desktop shows 6 cols, mobile shows 4 cols */}
             <div style={{ overflowX: "auto", borderRadius: 14, border: "1px solid #E5E4E0", boxShadow: "0 2px 8px rgba(0,0,0,0.06)" }}>
-              <table style={{ width: "100%", minWidth: 480, borderCollapse: "collapse", fontSize: 13, background: "#fff" }}>
+              {/* Desktop table */}
+              <table className="comparison-desktop" style={{ width: "100%", minWidth: 480, borderCollapse: "collapse", fontSize: 13, background: "#fff" }}>
                 <thead>
                   <tr style={{ background: "#1C1C1E" }}>
                     {["#", "Product", "Best For", "Rating", "Price", "Buy"].map(h => (
-                      <th key={h} style={{ padding: "12px 14px", textAlign: "left" as const, fontWeight: 700, color: "#fff", fontSize: 11, textTransform: "uppercase" as const, letterSpacing: "0.5px", whiteSpace: "nowrap" as const }}>{h}</th>
+                      <th key={h} style={{ padding: "12px 14px", textAlign: "left" as const, fontWeight: 700, color: "#fff", fontSize: 11, textTransform: "uppercase" as const, whiteSpace: "nowrap" as const }}>{h}</th>
                     ))}
                   </tr>
                 </thead>
@@ -209,19 +205,47 @@ export default function ComparisonLayout({ post }: { post: any }) {
                   {products.map((p, i) => (
                     <tr key={p.name} style={{ background: i % 2 === 0 ? "#fff" : "#FAFAF8" }}>
                       <td style={{ padding: "12px 14px", borderBottom: "1px solid #F3F4F6", color: "#9CA3AF", fontWeight: 700, fontSize: 12 }}>#{i + 1}</td>
-                      <td style={{ padding: "12px 14px", borderBottom: "1px solid #F3F4F6", minWidth: 130 }}>
+                      <td style={{ padding: "12px 14px", borderBottom: "1px solid #F3F4F6", minWidth: 120 }}>
                         <a href={p.amazon} target="_blank" rel="noopener noreferrer" style={{ fontWeight: 700, color: "#1C1C1E", textDecoration: "none", borderBottom: "1.5px solid #0d948860", fontSize: 12 }}>{p.name}</a>
                       </td>
                       <td style={{ padding: "12px 14px", color: "#0d9488", fontWeight: 600, borderBottom: "1px solid #F3F4F6", fontSize: 12 }}>{p.best}</td>
                       <td style={{ padding: "12px 14px", borderBottom: "1px solid #F3F4F6", whiteSpace: "nowrap" as const }}>
-                        <span style={{ fontWeight: 800, color: "#0d9488", fontSize: 14 }}>{p.overallRating}</span>
-                        <span style={{ color: "#9CA3AF", fontSize: 11 }}>/10</span>
+                        <span style={{ fontWeight: 800, color: "#0d9488", fontSize: 14 }}>{p.overallRating}</span><span style={{ color: "#9CA3AF", fontSize: 11 }}>/10</span>
                       </td>
                       <td style={{ padding: "12px 14px", color: "#374151", borderBottom: "1px solid #F3F4F6", fontWeight: 600, fontSize: 12, whiteSpace: "nowrap" as const }}>{p.price}</td>
                       <td style={{ padding: "12px 14px", borderBottom: "1px solid #F3F4F6", whiteSpace: "nowrap" as const }}>
                         <div style={{ display: "flex", gap: 6 }}>
                           <a href={p.amazon} target="_blank" rel="noopener noreferrer" style={{ background: "#FF9900", color: "#fff", padding: "5px 10px", borderRadius: 7, fontSize: 11, fontWeight: 700, textDecoration: "none" }}>Amazon</a>
                           <a href={p.flipkart} target="_blank" rel="noopener noreferrer" style={{ background: "#2874F0", color: "#fff", padding: "5px 10px", borderRadius: 7, fontSize: 11, fontWeight: 700, textDecoration: "none" }}>Flipkart</a>
+                        </div>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+              {/* UX 2 — Mobile table: 4 columns only */}
+              <table className="comparison-mobile" style={{ display: "none", width: "100%", borderCollapse: "collapse", fontSize: 13, background: "#fff" }}>
+                <thead>
+                  <tr style={{ background: "#1C1C1E" }}>
+                    {["Product", "Rating", "Price", "Buy"].map(h => (
+                      <th key={h} style={{ padding: "11px 12px", textAlign: "left" as const, fontWeight: 700, color: "#fff", fontSize: 11, textTransform: "uppercase" as const, whiteSpace: "nowrap" as const }}>{h}</th>
+                    ))}
+                  </tr>
+                </thead>
+                <tbody>
+                  {products.map((p, i) => (
+                    <tr key={p.name} style={{ background: i % 2 === 0 ? "#fff" : "#FAFAF8" }}>
+                      <td style={{ padding: "11px 12px", borderBottom: "1px solid #F3F4F6" }}>
+                        <a href={p.amazon} target="_blank" rel="noopener noreferrer" style={{ fontWeight: 700, color: "#1C1C1E", textDecoration: "none", fontSize: 12 }}>{p.name}</a>
+                      </td>
+                      <td style={{ padding: "11px 12px", borderBottom: "1px solid #F3F4F6", whiteSpace: "nowrap" as const }}>
+                        <span style={{ fontWeight: 800, color: "#0d9488", fontSize: 14 }}>{p.overallRating}</span><span style={{ color: "#9CA3AF", fontSize: 11 }}>/10</span>
+                      </td>
+                      <td style={{ padding: "11px 12px", color: "#374151", borderBottom: "1px solid #F3F4F6", fontWeight: 600, fontSize: 12, whiteSpace: "nowrap" as const }}>{p.price}</td>
+                      <td style={{ padding: "11px 12px", borderBottom: "1px solid #F3F4F6" }}>
+                        <div style={{ display: "flex", gap: 5 }}>
+                          <a href={p.amazon} target="_blank" rel="noopener noreferrer" style={{ background: "#FF9900", color: "#fff", padding: "5px 8px", borderRadius: 6, fontSize: 11, fontWeight: 700, textDecoration: "none" }}>Amz</a>
+                          <a href={p.flipkart} target="_blank" rel="noopener noreferrer" style={{ background: "#2874F0", color: "#fff", padding: "5px 8px", borderRadius: 6, fontSize: 11, fontWeight: 700, textDecoration: "none" }}>Fkrt</a>
                         </div>
                       </td>
                     </tr>
@@ -236,14 +260,13 @@ export default function ComparisonLayout({ post }: { post: any }) {
         <MDXRemote source={post.content} components={mdxComponents} />
         {products.map((product, i) => <ProductCard key={product.name} product={product} index={i} />)}
 
-        {/* Final Verdict */}
         <div id="final-verdict" style={{ marginBottom: 48 }}>
-          <h2 style={{ fontSize: 18, fontWeight: 800, color: "#1C1C1E", marginBottom: 4, letterSpacing: "-0.3px", display: "flex", alignItems: "center", gap: 10 }}>
+          <h2 style={{ fontSize: 18, fontWeight: 800, color: "#1C1C1E", marginBottom: 4, display: "flex", alignItems: "center", gap: 10 }}>
             <span style={{ display: "inline-block", width: 4, height: 20, background: "#0d9488", borderRadius: 2, flexShrink: 0 }} />Final Verdict
           </h2>
-          <p style={{ fontSize: 13, color: "#9CA3AF", marginBottom: 14 }}>Click any product name to check the current price on Amazon India.</p>
-          <div style={{ overflowX: "auto", borderRadius: 14, border: "1px solid #E5E4E0", boxShadow: "0 2px 8px rgba(0,0,0,0.06)" }}>
-            <table style={{ width: "100%", minWidth: 320, borderCollapse: "collapse", fontSize: 14, background: "#fff" }}>
+          <p style={{ fontSize: 13, color: "#9CA3AF", marginBottom: 14 }}>Click any name to check the current price on Amazon.</p>
+          <div style={{ overflowX: "auto", borderRadius: 14, border: "1px solid #E5E4E0" }}>
+            <table style={{ width: "100%", minWidth: 300, borderCollapse: "collapse", fontSize: 14, background: "#fff" }}>
               <thead>
                 <tr style={{ background: "#1C1C1E" }}>
                   <th style={{ padding: "12px 18px", textAlign: "left" as const, color: "#fff", fontSize: 11, fontWeight: 700, textTransform: "uppercase" as const, width: "45%" }}>Your Priority</th>
@@ -255,9 +278,7 @@ export default function ComparisonLayout({ post }: { post: any }) {
                   <tr key={i} style={{ background: i % 2 === 0 ? "#fff" : "#FAFAF8" }}>
                     <td style={{ padding: "13px 18px", color: "#374151", borderBottom: "1px solid #F3F4F6", fontWeight: 500, fontSize: 13 }}>{p.best}</td>
                     <td style={{ padding: "13px 18px", borderBottom: "1px solid #F3F4F6" }}>
-                      <a href={p.amazon} target="_blank" rel="noopener noreferrer" style={{ color: "#0d9488", fontWeight: 700, textDecoration: "none", fontSize: 13, display: "inline-flex", alignItems: "center", gap: 4 }}>
-                        {p.name} <span style={{ opacity: 0.6 }}>→</span>
-                      </a>
+                      <a href={p.amazon} target="_blank" rel="noopener noreferrer" style={{ color: "#0d9488", fontWeight: 700, textDecoration: "none", fontSize: 13 }}>{p.name} →</a>
                     </td>
                   </tr>
                 ))}
@@ -278,6 +299,10 @@ export default function ComparisonLayout({ post }: { post: any }) {
           .pros-cons-grid { grid-template-columns: 1fr !important; }
           .buy-buttons { grid-template-columns: 1fr !important; }
           .product-card > div:first-child { flex-direction: column !important; align-items: flex-start !important; }
+          .star-bar-desktop { display: none !important; }
+          .star-bar-mobile { display: block !important; }
+          .comparison-desktop { display: none !important; }
+          .comparison-mobile { display: table !important; }
         }
       `}</style>
     </div>
