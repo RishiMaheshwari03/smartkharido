@@ -3,26 +3,27 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 
-const coverImages: Record<string, string> = {
+const homeCoverImages: Record<string, string> = {
   "best-smartwatches-under-10000-india-2025": "https://images.unsplash.com/photo-1523275335684-37898b6baf30?w=600&q=80&auto=format",
   "redmi-note-13-pro-review": "https://images.unsplash.com/photo-1511707171634-5f897ff02aa9?w=600&q=80&auto=format",
 };
-function getCoverImage(slug: string, products: any[], reviewProduct: any) {
-  if (coverImages[slug]) return coverImages[slug];
+function getHomeCoverImage(coverImage: string | undefined, slug: string, products: any[], reviewProduct: any) {
+  if (coverImage) return coverImage;
+  if (homeCoverImages[slug]) return homeCoverImages[slug];
   if (reviewProduct?.image) return reviewProduct.image;
   if (products?.[0]?.image) return products[0].image;
   return "https://images.unsplash.com/photo-1556742049-0cfed4f6a45d?w=600&q=80&auto=format";
 }
-const categoryStyles: Record<string, { bg: string; color: string }> = {
+const homeCategoryStyles: Record<string, { bg: string; color: string }> = {
   smartphones: { bg: "#EDE9FE", color: "#6D28D9" },
   smartwatches: { bg: "#E6F7F5", color: "#0d9488" },
   laptops: { bg: "#FEF3C7", color: "#B45309" },
   kitchen: { bg: "#FCE7F3", color: "#BE185D" },
   headphones: { bg: "#DBEAFE", color: "#1D4ED8" },
 };
-function getCatStyle(cat: string) {
+function getHomeCatStyle(cat: string) {
   const k = cat.toLowerCase();
-  for (const [key, val] of Object.entries(categoryStyles)) if (k.includes(key)) return val;
+  for (const [key, val] of Object.entries(homeCategoryStyles)) if (k.includes(key)) return val;
   return { bg: "#F3F4F6", color: "#374151" };
 }
 
@@ -131,8 +132,8 @@ export default function HomePageClient({ latestPosts }: { latestPosts: any[] }) 
           </div>
           <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(280px, 1fr))", gap: 20 }}>
             {latestPosts.map((post, i) => {
-              const catStyle = getCatStyle(post.category);
-              const coverImage = getCoverImage(post.slug, post.products || [], post.reviewProduct);
+              const catStyle = getHomeCatStyle(post.category);
+              const coverImage = getHomeCoverImage(post.coverImage, post.slug, post.products || [], post.reviewProduct);
               const isFirst = i === 0;
               const isReview = post.articleType === "review";
               return (

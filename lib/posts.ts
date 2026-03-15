@@ -2,63 +2,69 @@ import fs from "fs";
 import path from "path";
 import matter from "gray-matter";
 
-const postsDirectory = path.join(process.cwd(), "content/blog");
+const postsDir = path.join(process.cwd(), "content/blog");
 
 export type Post = {
   slug: string;
   title: string;
   date: string;
   category: string;
+  articleType: string;
   excerpt: string;
   readTime: string;
-  articleType: string;
-  content: string;
-  products?: object[];
-  reviewProduct?: object;
+  coverImage?: string;
+  // comparison
+  products?: any[];
+  // review
+  reviewProduct?: any;
+  // guide
+  guide?: any;
+  // brand
+  brand?: any;
 };
 
 export function getAllPosts(): Post[] {
-  if (!fs.existsSync(postsDirectory)) return [];
-  const fileNames = fs.readdirSync(postsDirectory);
-  return fileNames
-    .filter((f) => f.endsWith(".mdx"))
-    .map((fileName) => {
-      const slug = fileName.replace(/\.mdx$/, "");
-      const fullPath = path.join(postsDirectory, fileName);
-      const { data, content } = matter(fs.readFileSync(fullPath, "utf8"));
+  const files = fs.readdirSync(postsDir).filter(f => f.endsWith(".mdx"));
+  return files
+    .map(file => {
+      const slug = file.replace(".mdx", "");
+      const raw  = fs.readFileSync(path.join(postsDir, file), "utf-8");
+      const { data } = matter(raw);
       return {
         slug,
-        title: data.title || "",
-        date: data.date || "",
-        category: data.category || "",
-        excerpt: data.excerpt || "",
-        readTime: data.readTime || "5 min",
-        articleType: data.articleType || "comparison",
-        products: data.products || [],
-        reviewProduct: data.reviewProduct || null,
-        content,
+        title:       data.title       || "",
+        date:        data.date        || "",
+        category:    data.category    || "",
+        articleType: data.articleType || "",
+        excerpt:     data.excerpt     || "",
+        readTime:    data.readTime    || "5 min",
+        coverImage:  data.coverImage,
+        products:    data.products,
+        reviewProduct: data.reviewProduct,
+        guide:       data.guide,
+        brand:       data.brand,
       };
     })
-    .sort((a, b) => (a.date < b.date ? 1 : -1));
+    .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
 }
 
-export function getPostBySlug(slug: string): Post | null {
-  try {
-    const fullPath = path.join(postsDirectory, `${slug}.mdx`);
-    const { data, content } = matter(fs.readFileSync(fullPath, "utf8"));
-    return {
-      slug,
-      title: data.title || "",
-      date: data.date || "",
-      category: data.category || "",
-      excerpt: data.excerpt || "",
-      readTime: data.readTime || "5 min",
-      articleType: data.articleType || "comparison",
-      products: data.products || [],
-      reviewProduct: data.reviewProduct || null,
-      content,
-    };
-  } catch {
-    return null;
-  }
+export function getPostBySlug(slug: string) {
+  const file = path.join(postsDir, `${slug}.mdx`);
+  if (!fs.existsSync(file)) return null;
+  const raw = fs.readFileSync(file, "utf-8");
+  const { data } = matter(raw);
+  return {
+    slug,
+    title:       data.title       || "",
+    date:        data.date        || "",
+    category:    data.category    || "",
+    articleType: data.articleType || "",
+    excerpt:     data.excerpt     || "",
+    readTime:    data.readTime    || "5 min",
+    coverImage:  data.coverImage,
+    products:    data.products,
+    reviewProduct: data.reviewProduct,
+    guide:       data.guide,
+    brand:       data.brand,
+  };
 }

@@ -7,7 +7,8 @@ const coverImages: Record<string, string> = {
   "best-smartwatches-under-10000-india-2025": "https://images.unsplash.com/photo-1523275335684-37898b6baf30?w=600&q=80&auto=format",
   "redmi-note-13-pro-review": "https://images.unsplash.com/photo-1511707171634-5f897ff02aa9?w=600&q=80&auto=format",
 };
-function getCoverImage(slug: string, products: any[], reviewProduct: any) {
+function getCoverImage(coverImage: string | undefined, slug: string, products: any[], reviewProduct: any) {
+  if (coverImage) return coverImage;
   if (coverImages[slug]) return coverImages[slug];
   if (reviewProduct?.image) return reviewProduct.image;
   if (products?.[0]?.image) return products[0].image;
@@ -303,7 +304,7 @@ export default function BlogPageClient({ posts }: { posts: any[] }) {
           <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(280px, 1fr))", gap: 24 }}>
             {filtered.map(post => {
               const catStyle = getCatStyle(post.category);
-              const coverImage = getCoverImage(post.slug, post.products || [], post.reviewProduct);
+              const coverImage = getCoverImage(post.coverImage, post.slug, post.products || [], post.reviewProduct);
               const isReview = post.articleType === "review";
               return (
                 <Link key={post.slug} href={`/blog/${post.slug}`} style={{ display: "block", background: "#fff", borderRadius: 16, border: "1px solid #E5E4E0", textDecoration: "none", overflow: "hidden", boxShadow: "0 2px 8px rgba(0,0,0,0.04)" }}>

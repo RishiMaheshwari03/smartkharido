@@ -2,17 +2,18 @@
 import { useState, useMemo, useRef, useEffect } from "react";
 import Link from "next/link";
 
-const coverImages: Record<string, string> = {
+const catCoverImages: Record<string, string> = {
   "best-smartwatches-under-10000-india-2025": "https://images.unsplash.com/photo-1523275335684-37898b6baf30?w=600&q=80&auto=format",
   "redmi-note-13-pro-review": "https://images.unsplash.com/photo-1511707171634-5f897ff02aa9?w=600&q=80&auto=format",
 };
-function getCoverImage(slug: string, products: any[], reviewProduct: any) {
-  if (coverImages[slug]) return coverImages[slug];
+function getCoverImage(coverImage: string | undefined, slug: string, products: any[], reviewProduct: any) {
+  if (coverImage) return coverImage;
+  if (catCoverImages[slug]) return catCoverImages[slug];
   if (reviewProduct?.image) return reviewProduct.image;
   if (products?.[0]?.image) return products[0].image;
   return "https://images.unsplash.com/photo-1556742049-0cfed4f6a45d?w=600&q=80&auto=format";
 }
-const catStyleMap: Record<string, { bg: string; color: string; dot: string }> = {
+const catPageStyleMap: Record<string, { bg: string; color: string; dot: string }> = {
   smartphones:  { bg: "#EDE9FE", color: "#6D28D9", dot: "#7C3AED" },
   smartwatches: { bg: "#E6F7F5", color: "#0d9488",  dot: "#0d9488" },
   laptops:      { bg: "#FEF3C7", color: "#B45309",  dot: "#F59E0B" },
@@ -21,7 +22,7 @@ const catStyleMap: Record<string, { bg: string; color: string; dot: string }> = 
 };
 function getCatStyle(cat: string) {
   const k = cat.toLowerCase();
-  for (const [key, val] of Object.entries(catStyleMap)) if (k.includes(key)) return val;
+  for (const [key, val] of Object.entries(catPageStyleMap)) if (k.includes(key)) return val;
   return { bg: "#F3F4F6", color: "#374151", dot: "#9CA3AF" };
 }
 
@@ -295,7 +296,7 @@ export default function CategoryPageClient({ posts, category }: { posts: any[]; 
           <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(280px, 1fr))", gap: 24 }}>
             {filtered.map(post => {
               const catStyle = getCatStyle(post.category);
-              const coverImage = getCoverImage(post.slug, post.products || [], post.reviewProduct);
+              const coverImage = getCoverImage(post.coverImage, post.slug, post.products || [], post.reviewProduct);
               const isReview = post.articleType === "review";
               return (
                 <Link key={post.slug} href={`/blog/${post.slug}`} style={{ display: "block", background: "#fff", borderRadius: 16, border: "1px solid #E5E4E0", textDecoration: "none", overflow: "hidden", boxShadow: "0 2px 8px rgba(0,0,0,0.04)" }}>
