@@ -25,17 +25,23 @@ function getCatStyle(cat: string) {
   return { bg: "#F3F4F6", color: "#374151", dot: "#9CA3AF" };
 }
 
-type Tab = "type" | "sort";
+type Tab = "category" | "type" | "sort";
 
-function FilterPopover({ open, onClose, anchorRef, hasGuides, hasReviews, activeType, sort, onType, onSort }: {
+function FilterPopover({ open, onClose, anchorRef, categories, hasGuides, hasReviews, activeCategory, activeType, sort, onCategory, onType, onSort }: {
   open: boolean; onClose: () => void;
   anchorRef: React.RefObject<HTMLButtonElement | null>;
-  hasGuides: boolean; hasReviews: boolean;
-  activeType: string; sort: string;
-  onType: (t: string) => void; onSort: (s: string) => void;
+  categories: string[]; hasGuides: boolean; hasReviews: boolean;
+  activeCategory: string; activeType: string; sort: string;
+  onCategory: (c: string) => void; onType: (t: string) => void; onSort: (s: string) => void;
 }) {
   const ref = useRef<HTMLDivElement>(null);
-  const [tab, setTab] = useState<Tab>("type");
+  const [tab, setTab] = useState<Tab>("category");
+  const [catSearch, setCatSearch] = useState("");
+  const [typeSearch, setTypeSearch] = useState("");
+
+  useEffect(() => {
+    if (open) { setTab("category"); setCatSearch(""); setTypeSearch(""); }
+  }, [open]);
 
   useEffect(() => {
     const handler = (e: MouseEvent) => {
@@ -48,37 +54,75 @@ function FilterPopover({ open, onClose, anchorRef, hasGuides, hasReviews, active
 
   if (!open) return null;
 
+  const filteredCats = categories.filter(c => c === "All" || c.toLowerCase().includes(catSearch.toLowerCase()));
+
   const tabs: { id: Tab; label: string; badge?: string }[] = [
-    { id: "type", label: "Type", badge: activeType !== "All" ? activeType : undefined },
-    { id: "sort", label: "Sort", badge: sort !== "newest" ? "Oldest" : undefined },
+    { id: "category", label: "Category", badge: activeCategory !== "All" ? activeCategory : undefined },
+    { id: "type",     label: "Type",     badge: activeType !== "All" ? activeType : undefined },
+    { id: "sort",     label: "Sort",     badge: sort !== "newest" ? "Oldest" : undefined },
   ];
 
   return (
     <div ref={ref} style={{
       position: "absolute" as const, top: "calc(100% + 10px)", right: 0,
       background: "#fff", borderRadius: 18, border: "1px solid #E5E4E0",
-      boxShadow: "0 12px 40px rgba(0,0,0,0.14)", zIndex: 300, width: 260, overflow: "hidden",
+      boxShadow: "0 12px 40px rgba(0,0,0,0.14)", zIndex: 300, width: 300, overflow: "hidden",
       animation: "popIn 0.18s cubic-bezier(0.34,1.56,0.64,1)"
     }}>
       {/* Tab bar */}
       <div style={{ display: "flex", borderBottom: "1px solid #F3F4F6", padding: "6px 6px 0" }}>
         {tabs.map(t => (
           <button key={t.id} onClick={() => setTab(t.id)}
-            style={{ flex: 1, display: "flex", flexDirection: "column" as const, alignItems: "center", gap: 3, padding: "10px 8px", borderRadius: "10px 10px 0 0", border: "none", cursor: "pointer", background: tab === t.id ? "#F7F6F3" : "transparent", borderBottom: tab === t.id ? "2px solid #0d9488" : "2px solid transparent", transition: "all 0.15s" }}>
+            style={{ flex: 1, display: "flex", flexDirection: "column" as const, alignItems: "center", gap: 3, padding: "10px 6px", borderRadius: "10px 10px 0 0", border: "none", cursor: "pointer", background: tab === t.id ? "#F7F6F3" : "transparent", borderBottom: tab === t.id ? "2px solid #0d9488" : "2px solid transparent", transition: "all 0.15s" }}>
             <span style={{ fontSize: 12, fontWeight: 700, color: tab === t.id ? "#0d9488" : "#9CA3AF" }}>{t.label}</span>
-            {t.badge && <span style={{ fontSize: 10, fontWeight: 700, color: "#fff", background: "#0d9488", borderRadius: 100, padding: "1px 7px" }}>{t.badge}</span>}
+            {t.badge && <span style={{ fontSize: 10, fontWeight: 700, color: "#fff", background: "#0d9488", borderRadius: 100, padding: "1px 7px", maxWidth: 70, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" as const }}>{t.badge}</span>}
           </button>
         ))}
       </div>
 
       <div style={{ padding: "12px" }}>
+        {/* CATEGORY tab */}
+        {tab === "category" && (
+          <>
+            <div style={{ position: "relative" as const, marginBottom: 10 }}>
+              <div style={{ position: "absolute" as const, left: 10, top: "50%", transform: "translateY(-50%)", fontSize: 12, opacity: 0.4 }}>🔍</div>
+              <input type="text" placeholder="Find category..." value={catSearch} onChange={e => setCatSearch(e.target.value)}
+                style={{ width: "100%", padding: "8px 10px 8px 30px", borderRadius: 10, border: "1.5px solid #E5E4E0", fontSize: 12, outline: "none", background: "#F7F6F3", color: "#1C1C1E", boxSizing: "border-box" as const }} />
+              {catSearch && <button onClick={() => setCatSearch("")} style={{ position: "absolute" as const, right: 8, top: "50%", transform: "translateY(-50%)", background: "none", border: "none", cursor: "pointer", fontSize: 11, color: "#9CA3AF", padding: 0 }}>✕</button>}
+            </div>
+            <div style={{ maxHeight: 200, overflowY: "auto" as const }}>
+              {filteredCats.length === 0 ? (
+                <p style={{ fontSize: 12, color: "#9CA3AF", textAlign: "center" as const, padding: "14px 0" }}>No categories found</p>
+              ) : filteredCats.map(cat => {
+                const s = getCatStyle(cat);
+                const active = activeCategory === cat;
+                return (
+                  <button key={cat} onClick={() => { onCategory(cat); onClose(); }}
+                    style={{ width: "100%", display: "flex", alignItems: "center", gap: 10, padding: "9px 10px", borderRadius: 10, border: "none", cursor: "pointer", background: active ? s.bg : "transparent", textAlign: "left" as const, marginBottom: 2, transition: "background 0.1s" }}>
+                    <span style={{ width: 9, height: 9, borderRadius: "50%", background: cat === "All" ? "#D1D5DB" : s.dot, flexShrink: 0 }} />
+                    <span style={{ fontSize: 13, fontWeight: active ? 700 : 400, color: active ? s.color : "#374151", flex: 1 }}>{cat}</span>
+                    {active && <span style={{ fontSize: 13, color: s.color }}>✓</span>}
+                  </button>
+                );
+              })}
+            </div>
+          </>
+        )}
+
+        {/* TYPE tab */}
         {tab === "type" && (
           <div>
+            <div style={{ position: "relative" as const, marginBottom: 10 }}>
+              <div style={{ position: "absolute" as const, left: 10, top: "50%", transform: "translateY(-50%)", fontSize: 12, opacity: 0.4 }}>🔍</div>
+              <input type="text" placeholder="Find type..." value={typeSearch} onChange={e => setTypeSearch(e.target.value)}
+                style={{ width: "100%", padding: "8px 10px 8px 30px", borderRadius: 10, border: "1.5px solid #E5E4E0", fontSize: 12, outline: "none", background: "#F7F6F3", color: "#1C1C1E", boxSizing: "border-box" as const }} />
+              {typeSearch && <button onClick={() => setTypeSearch("")} style={{ position: "absolute" as const, right: 8, top: "50%", transform: "translateY(-50%)", background: "none", border: "none", cursor: "pointer", fontSize: 11, color: "#9CA3AF", padding: 0 }}>✕</button>}
+            </div>
             {[
               { v: "All",    icon: "📋", label: "All Types",        desc: "Show everything" },
               ...(hasGuides  ? [{ v: "Guide",  icon: "🗂", label: "Buying Guide",    desc: "Best-of comparison guides" }] : []),
               ...(hasReviews ? [{ v: "Review", icon: "⭐", label: "In-Depth Review", desc: "Single product deep-dives" }] : []),
-            ].map(t => {
+            ].filter(t => t.label.toLowerCase().includes(typeSearch.toLowerCase())).map(t => {
               const active = activeType === t.v;
               return (
                 <button key={t.v} onClick={() => { onType(t.v); onClose(); }}
@@ -94,6 +138,8 @@ function FilterPopover({ open, onClose, anchorRef, hasGuides, hasReviews, active
             })}
           </div>
         )}
+
+        {/* SORT tab */}
         {tab === "sort" && (
           <div>
             {[
@@ -117,11 +163,11 @@ function FilterPopover({ open, onClose, anchorRef, hasGuides, hasReviews, active
         )}
       </div>
 
-      {(activeType !== "All") && (
+      {(activeCategory !== "All" || activeType !== "All") && (
         <div style={{ padding: "0 12px 12px" }}>
-          <button onClick={() => { onType("All"); onSort("newest"); onClose(); }}
+          <button onClick={() => { onCategory("All"); onType("All"); onClose(); }}
             style={{ width: "100%", padding: "9px", borderRadius: 10, border: "1px solid #FECACA", background: "#FEF2F2", color: "#ef4444", fontSize: 12, fontWeight: 700, cursor: "pointer" }}>
-            ✕ Clear filters
+            ✕ Clear all filters
           </button>
         </div>
       )}
@@ -132,15 +178,20 @@ function FilterPopover({ open, onClose, anchorRef, hasGuides, hasReviews, active
 type CatInfo = { label: string; description: string; emoji: string; matches: string[] };
 
 export default function CategoryPageClient({ posts, category }: { posts: any[]; category: CatInfo; slug: string }) {
-  const [search, setSearch]         = useState("");
-  const [activeType, setActiveType] = useState("All");
-  const [sort, setSort]             = useState("newest");
-  const [filterOpen, setFilterOpen] = useState(false);
+  const [search, setSearch]             = useState("");
+  const [activeCategory, setActiveCategory] = useState("All");
+  const [activeType, setActiveType]     = useState("All");
+  const [sort, setSort]                 = useState("newest");
+  const [filterOpen, setFilterOpen]     = useState(false);
   const filterBtnRef = useRef<HTMLButtonElement>(null);
 
+  const categories = useMemo(() =>
+    ["All", ...Array.from(new Set(posts.map(p => p.category).filter(Boolean)))],
+    [posts]
+  );
   const hasReviews = posts.some(p => p.articleType === "review");
   const hasGuides  = posts.some(p => p.articleType === "comparison");
-  const activeCount = [activeType !== "All", sort !== "newest"].filter(Boolean).length;
+  const activeCount = [activeCategory !== "All", activeType !== "All", sort !== "newest"].filter(Boolean).length;
 
   const filtered = useMemo(() => {
     let result = [...posts];
@@ -148,11 +199,12 @@ export default function CategoryPageClient({ posts, category }: { posts: any[]; 
       const q = search.toLowerCase();
       result = result.filter(p => p.title.toLowerCase().includes(q) || p.excerpt.toLowerCase().includes(q) || p.category.toLowerCase().includes(q));
     }
+    if (activeCategory !== "All") result = result.filter(p => p.category === activeCategory);
     if (activeType === "Guide")  result = result.filter(p => p.articleType === "comparison");
     if (activeType === "Review") result = result.filter(p => p.articleType === "review");
     if (sort === "oldest") result.reverse();
     return result;
-  }, [posts, search, activeType, sort]);
+  }, [posts, search, activeCategory, activeType, sort]);
 
   return (
     <div style={{ backgroundColor: "#F7F6F3", minHeight: "100vh" }}>
@@ -186,16 +238,22 @@ export default function CategoryPageClient({ posts, category }: { posts: any[]; 
               </button>
               <FilterPopover
                 open={filterOpen} onClose={() => setFilterOpen(false)} anchorRef={filterBtnRef}
-                hasGuides={hasGuides} hasReviews={hasReviews}
-                activeType={activeType} sort={sort}
-                onType={setActiveType} onSort={setSort}
+                categories={categories} hasGuides={hasGuides} hasReviews={hasReviews}
+                activeCategory={activeCategory} activeType={activeType} sort={sort}
+                onCategory={setActiveCategory} onType={setActiveType} onSort={setSort}
               />
             </div>
           </div>
 
           {/* Active pills */}
-          {(activeType !== "All" || sort !== "newest") && (
+          {(activeCategory !== "All" || activeType !== "All" || sort !== "newest") && (
             <div style={{ display: "flex", gap: 6, flexWrap: "wrap" as const, marginTop: 14 }}>
+              {activeCategory !== "All" && (
+                <span style={{ display: "inline-flex", alignItems: "center", gap: 5, fontSize: 12, fontWeight: 600, background: "rgba(255,255,255,0.12)", color: "#fff", borderRadius: 100, padding: "5px 12px", border: "1px solid rgba(255,255,255,0.2)" }}>
+                  📂 {activeCategory}
+                  <button onClick={() => setActiveCategory("All")} style={{ background: "none", border: "none", cursor: "pointer", color: "#fff", fontSize: 11, padding: 0, opacity: 0.7 }}>✕</button>
+                </span>
+              )}
               {activeType !== "All" && (
                 <span style={{ display: "inline-flex", alignItems: "center", gap: 5, fontSize: 12, fontWeight: 600, background: "rgba(255,255,255,0.12)", color: "#fff", borderRadius: 100, padding: "5px 12px", border: "1px solid rgba(255,255,255,0.2)" }}>
                   {activeType === "Guide" ? "🗂 Guides" : "⭐ Reviews"}

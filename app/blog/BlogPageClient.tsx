@@ -38,9 +38,10 @@ function FilterPopover({ open, onClose, anchorRef, categories, hasGuides, hasRev
   const ref = useRef<HTMLDivElement>(null);
   const [tab, setTab] = useState<Tab>("category");
   const [catSearch, setCatSearch] = useState("");
+  const [typeSearch, setTypeSearch] = useState("");
 
   useEffect(() => {
-    if (open) { setTab("category"); setCatSearch(""); }
+    if (open) { setTab("category"); setCatSearch(""); setTypeSearch(""); }
   }, [open]);
 
   useEffect(() => {
@@ -121,11 +122,18 @@ function FilterPopover({ open, onClose, anchorRef, categories, hasGuides, hasRev
         {/* TYPE tab */}
         {tab === "type" && (
           <div>
+            {/* Search inside type */}
+            <div style={{ position: "relative" as const, marginBottom: 10 }}>
+              <div style={{ position: "absolute" as const, left: 10, top: "50%", transform: "translateY(-50%)", fontSize: 12, opacity: 0.4 }}>🔍</div>
+              <input type="text" placeholder="Find type..." value={typeSearch} onChange={e => setTypeSearch(e.target.value)}
+                style={{ width: "100%", padding: "8px 10px 8px 30px", borderRadius: 10, border: "1.5px solid #E5E4E0", fontSize: 12, outline: "none", background: "#F7F6F3", color: "#1C1C1E", boxSizing: "border-box" as const }} />
+              {typeSearch && <button onClick={() => setTypeSearch("")} style={{ position: "absolute" as const, right: 8, top: "50%", transform: "translateY(-50%)", background: "none", border: "none", cursor: "pointer", fontSize: 11, color: "#9CA3AF", padding: 0 }}>✕</button>}
+            </div>
             {[
               { v: "All",    icon: "📋", label: "All Types",       desc: "Show everything" },
               ...(hasGuides  ? [{ v: "Guide",  icon: "🗂", label: "Buying Guide",   desc: "Best-of comparison guides" }] : []),
               ...(hasReviews ? [{ v: "Review", icon: "⭐", label: "In-Depth Review", desc: "Single product deep-dives" }] : []),
-            ].map(t => {
+            ].filter(t => t.label.toLowerCase().includes(typeSearch.toLowerCase())).map(t => {
               const active = activeType === t.v;
               return (
                 <button key={t.v} onClick={() => { onType(t.v); onClose(); }}
